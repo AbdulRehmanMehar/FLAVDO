@@ -1,4 +1,6 @@
+import os, binascii
 from flask_login import UserMixin
+from passlib.hash import sha256_crypt
 from . import db
 
 class User(UserMixin, db.Model):
@@ -10,12 +12,13 @@ class User(UserMixin, db.Model):
     password = db.Column('password', db.String(200), nullable=False)
     admin = db.Column('admin', db.Boolean, nullable=False, default=False)
     verified = db.Column('verified', db.Boolean, nullable=False, default=False)
+    verificationToken = db.Column('verificationToken', db.String, nullable=True)
 
     def __init__(self, name, email, username, password, admin=False, verified=False):
         self.name = name
         self.email = email
         self.username = username
-        self.password = password
+        self.password = sha256_crypt.encrypt(password)
         self.admin = admin
         self.verified = verified
         user = User.query.order_by(User.id.desc()).first()
@@ -23,6 +26,13 @@ class User(UserMixin, db.Model):
             self.id = 1
         else:
             self.id = user.id + 1
+        if(not verified):
+            self.verificationToken = str(binascii.b2a_hex(os.urandom(15)))
+        else:
+            self.verificationToken = None
+
+    def compare(self, pwd):
+        return sha256_crypt.verify(pwd, self.password)
 
     def __repr__(self):
         return '<User %r>' % self.username
