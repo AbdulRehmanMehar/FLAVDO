@@ -30,6 +30,7 @@ class RegisterationForm(Form):
 
     password = PasswordField('Password', [
         validators.DataRequired(),
+        validators.Length(min=8, max=25),
         validators.equal_to('cpassword', message='Passwords don\'t match.')
     ], description='************')  
     cpassword = PasswordField('Confirm Password', [
