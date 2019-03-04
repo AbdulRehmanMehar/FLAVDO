@@ -18,3 +18,6 @@ class LoginForm(Form):
     def validate_password(self, field):
         if self.user == None or not self.user.compare(field.data):
             raise ValidationError('Incorrect Credentials were provided.')
+
+    def get_user(self):
+        return self.user
