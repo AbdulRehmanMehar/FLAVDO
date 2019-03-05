@@ -42,6 +42,22 @@ def logout():
     flash('You are logged out successfully.', 'success')
     return redirect(url_for('auth.login'))
 
+@auth.route('/send-token')
+@login_required
+def send_token():
+    user = User.query.filter(User.id == current_user.id).first()
+    user.verificationToken = user.set_token()
+    mail.send_email(
+        to_email=[{'email': user.email}],
+        subject='Authentication',
+        html='<h1>Hey ' + user.name + '</h1><p>Please verify your email (' + user.email + ') by clicking <a href="' + app.config['APP_URI'] + '/auth/' + user.get_id() + '/' +user.verificationToken + '">here</a>.</p>'
+    )
+    db.session.commit()
+    flash('Verification email sent.', 'success')
+    # if something wents wrong, it will redirect to login instead of dashboard
+    redir = request.args.get('next') or request.referrer or url_for('login')
+    return redirect(redir)
+
 @auth.route('<id>/<token>')
 def verify(id, token):
     user = User.query.filter(User.id == id and User.verificationToken==token and User.verified==False).first()
