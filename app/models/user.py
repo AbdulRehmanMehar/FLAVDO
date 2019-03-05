@@ -27,12 +27,15 @@ class User(UserMixin, db.Model):
         else:
             self.id = user.id + 1
         if(not verified):
-            self.verificationToken = str(binascii.b2a_hex(os.urandom(15)))
+            self.verificationToken = self.set_token()
         else:
             self.verificationToken = None
 
     def compare(self, pwd):
         return sha256_crypt.verify(pwd, self.password)
+
+    def set_token(self):
+        return str(binascii.b2a_hex(os.urandom(15)))
 
     def __repr__(self):
         return '<User %r>' % self.username
