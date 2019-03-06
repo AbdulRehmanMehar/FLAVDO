@@ -9,6 +9,8 @@ def restrict():
         return abort(401)
     if(not current_user.verified):
         flash('Please verify your email. '+ Markup('<a class="alert-link" href="'+ url_for('auth.send_token') +'">Resend Verification Token?</a>'), 'info')
+    if(current_user.photo == None):
+        flash(Markup('<a href="'+ url_for('auth.upload_photo') +'">Add a photo?</a>') + ' So others may recognize your channel.', 'info')
 
 @dashboard.route('/')
 def home():
