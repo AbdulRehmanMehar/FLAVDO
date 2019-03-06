@@ -1,8 +1,9 @@
-from flask import Blueprint, request, render_template, redirect, url_for, flash
+import os
+from flask import Blueprint, request, render_template, redirect, url_for, flash, send_file
 from flask_login import login_user, login_required, logout_user, current_user
 from . import app, mail
 from ..models import db, User
-from ..forms import LoginForm, RegisterationForm
+from ..forms import LoginForm, RegisterationForm, PhotoUploadForm
 
 auth = Blueprint('auth', __name__)
 
@@ -55,8 +56,48 @@ def send_token():
     db.session.commit()
     flash('Verification email sent.', 'success')
     # if something wents wrong, it will redirect to login instead of dashboard
-    redir = request.args.get('next') or request.referrer or url_for('login')
+    redir = request.args.get('next') or request.referrer or url_for('auth.login')
     return redirect(redir)
+
+@auth.route('/upload-photo', methods=['GET', 'POST'])
+@login_required
+def upload_photo():
+    form = PhotoUploadForm(request.files)
+    if request.method == 'POST' and form.validate():
+        user = User.query.get(current_user.get_id())
+        if user.photo != None:
+            os.remove(os.path.join(app.config['UPLOADS_FOLDER'] + '/images', user.photo))
+        photo = request.files[form.photo.name]
+        filename = current_user.username + '.' + form.ext
+        photo.save(os.path.join(app.config['UPLOADS_FOLDER'] + '/images', filename))
+        user.photo = filename
+        db.session.commit()
+        flash('Photo has been uploaded.', 'success')
+        redir = request.args.get('next') or request.referrer or url_for('auth.login')
+        return redirect(redir)
+
+    return render_template('photo-upload.html', form=form)
+
+
+@auth.route('/remove-photo', methods=['GET'])
+@login_required
+def remove_photo():
+    user = User.query.get(current_user.get_id())
+    if user.photo != None:
+        os.remove(os.path.join(app.config['UPLOADS_FOLDER'] + '/images', user.photo))
+        user.photo = None
+        db.session.commit()
+        flash('Photo has been removed', 'success')
+    redir = request.args.get('next') or request.referrer or url_for('auth.login')
+    return redirect(redir)
+
+@auth.route('/get-photo/<uname>')
+def get_photo(uname):
+    user = User.query.filter(User.username == uname).first()
+    if user != None:
+        path = os.path.join(app.config['UPLOADS_FOLDER'] + '/images', user.photo)
+        return send_file(path)
+    return send_file(os.path.join(app.config['UPLOADS_FOLDER'] + '/images', 'default.jpg'))
 
 @auth.route('<id>/<token>')
 def verify(id, token):
