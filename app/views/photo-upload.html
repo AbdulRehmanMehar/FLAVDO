@@ -1,0 +1,18 @@
+{% from "_formsHelper.html" import render_field %}
+
+{% extends "base.html" %}
+
+{% block title %} Dashboard {% endblock %}
+
+{% block body %}
+
+<div class="container mt-4">
+    <form action="{{ url_for('auth.upload_photo') }}" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            {{ render_field(form.photo) }}
+        </div>
+        <button type="submit" class="btn btn-outline-info form-control">Upload</button>
+    </form>
+</div>
+
+{% endblock %}
