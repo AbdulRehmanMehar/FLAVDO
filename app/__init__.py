@@ -14,6 +14,9 @@ app.template_folder = os.path.join(
 app.static_folder = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), 'public')
 
+app.config['UPLOADS_FOLDER'] = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), 'uploads')
+
 config_path = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), 'app.config')
 
