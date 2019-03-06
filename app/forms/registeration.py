@@ -1,6 +1,6 @@
 from wtforms import Form, PasswordField, StringField, validators, ValidationError
 from wtforms.fields.html5 import EmailField
-from ..models import User
+from ..models import User, app
 
 class RegisterationForm(Form):
     name = StringField('Name', [    
@@ -25,7 +25,7 @@ class RegisterationForm(Form):
 
     def validate_username(self, field):
         user = User.query.filter(User.username == field.data).first()
-        if user != None:
+        if user != None or field in app.config['PROHIBITED_USERNAMES']:
             raise ValidationError('Username not available.')
 
     password = PasswordField('Password', [
