@@ -6,10 +6,7 @@ index = Blueprint('app', __name__)
 
 @index.route('/')
 def home():
-    if(current_user.is_authenticated):
-        return current_user.username
-    else:
-        return render_template('index.html')
+    return render_template('index.html')
     
 
 
