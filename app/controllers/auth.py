@@ -43,19 +43,21 @@ def logout():
     flash('You are logged out successfully.', 'success')
     return redirect(url_for('auth.login'))
 
-@auth.route('/send-token')
-@login_required
-def send_token():
-    user = User.query.filter(User.id == current_user.id).first()
-    user.verificationToken = user.set_token()
-    mail.send_email(
-        to_email=[{'email': user.email}],
-        subject='Authentication',
-        html='<h1>Hey ' + user.name + '</h1><p>Please verify your email (' + user.email + ') by clicking <a href="' + app.config['APP_URI'] + '/auth/' + user.get_id() + '/' +user.verificationToken + '">here</a>.</p>'
-    )
-    db.session.commit()
-    flash('Verification email sent.', 'success')
-    # if something wents wrong, it will redirect to login instead of dashboard
+@auth.route('/send-token/<uname>')
+def send_token(uname):
+    user = User.query.filter((User.username==uname) | (User.email==uname)).first()
+    if user != None:
+        user.verified = False
+        user.verificationToken = user.set_token()
+        mail.send_email(
+            to_email=[{'email': user.email}],
+            subject='Authentication',
+            html='<h1>Hey ' + user.name + '</h1><p>Please verify your email (' + user.email + ') by clicking <a href="' + app.config['APP_URI'] + '/auth/' + user.get_id() + '/' +user.verificationToken + '">here</a>.</p>'
+        )
+        db.session.commit()
+        flash('Verification email sent.', 'success')
+    else:
+        flash('Sorry, Something went wrong.', 'danger')
     redir = request.args.get('next') or request.referrer or url_for('auth.login')
     return redirect(redir)
 
@@ -106,7 +108,7 @@ def edit_profile():
         user = User.query.get(current_user.get_id())
         if form.name.data != current_user.name:
             user.name = form.name.data
-        if form.password.data != None and not user.compare(form.password.data):
+        if form.password.data != '' and not user.compare(form.password.data):
             user.password = user.hash(form.password.data)
         db.session.commit()
         flash('Data updated successfully.', 'success')
@@ -123,5 +125,8 @@ def verify(id, token):
         user.verified = True
         user.verificationToken = None
         db.session.commit()
+        if not current_user.is_authenticated:
+            login_user(user)
+            flash('You\'re logged in successfully.', 'success')
         flash('Your email is now verified.', 'success')
-        return redirect(url_for('auth.login'))
+        return redirect(url_for('auth.edit_profile'))
