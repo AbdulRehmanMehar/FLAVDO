@@ -25,7 +25,7 @@ class RegisterationForm(Form):
 
     def validate_username(self, field):
         user = User.query.filter(User.username == field.data).first()
-        if user != None or field in app.config['PROHIBITED_USERNAMES']:
+        if user != None or field.data in app.config['PROHIBITED_USERNAMES']:
             raise ValidationError('Username not available.')
 
     password = PasswordField('Password', [
