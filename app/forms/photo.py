@@ -3,7 +3,7 @@ from . import app
 from wtforms import Form, FileField, TextField, ValidationError, validators
 
 class PhotoUploadForm(Form):
-    photo = FileField('Profile Picture', [
+    photo = FileField('Channel Photo', [
         validators.DataRequired(message='Image is required.')
     ], description='Choose a photo')
 
