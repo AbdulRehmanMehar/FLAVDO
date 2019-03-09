@@ -3,7 +3,7 @@ from flask import Blueprint, request, render_template, redirect, url_for, flash,
 from flask_login import login_user, login_required, logout_user, current_user
 from . import app, mail
 from ..models import db, User
-from ..forms import LoginForm, RegisterationForm, PhotoUploadForm
+from ..forms import LoginForm, RegisterationForm, PhotoUploadForm, EditProfileForm
 
 auth = Blueprint('auth', __name__)
 
@@ -78,7 +78,6 @@ def upload_photo():
 
     return render_template('photo-upload.html', form=form)
 
-
 @auth.route('/remove-photo', methods=['GET'])
 @login_required
 def remove_photo():
@@ -98,6 +97,21 @@ def get_photo(uname):
         path = os.path.join(app.config['UPLOADS_FOLDER'] + '/images', user.photo)
         return send_file(path)
     return send_file(os.path.join(app.config['UPLOADS_FOLDER'] + '/images', 'default.jpg'))
+
+@auth.route('/edit-profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    form = EditProfileForm(request.form)
+    if request.method == 'POST' and form.validate():
+        user = User.query.get(current_user.get_id())
+        if form.name.data != current_user.name:
+            user.name = form.name.data
+        if form.password.data != None and not user.compare(form.password.data):
+            user.password = user.hash(form.password.data)
+        db.session.commit()
+        flash('Data updated successfully.', 'success')
+        return redirect(url_for('auth.edit_profile'))
+    return render_template('edit-profile.html', form=form)
 
 @auth.route('<id>/<token>')
 def verify(id, token):
