@@ -33,7 +33,11 @@
         {% elif field.errors == () %}
             {{ field(class_="form-control", placeholder=field.description, **kwargs)|safe }}
         {% else %}
-            {{ field(class_="form-control is-valid", placeholder=field.description, **kwargs)|safe }}
+            {% if field.type != 'PasswordField' %}
+                {{ field(class_="form-control is-valid", placeholder=field.description, **kwargs)|safe }}
+            {% else %}
+                {{ field(class_="form-control", placeholder=field.description, **kwargs)|safe }}
+            {% endif %}
         {% endif %}
     {% endif %}
 {% endmacro %}
