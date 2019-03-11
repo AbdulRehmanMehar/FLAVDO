@@ -1,7 +1,7 @@
 import os
 from flask import Blueprint, render_template, redirect, url_for, request, abort, flash, Markup
 from flask_login import current_user
-from ..models import Video, app, db
+from ..models import User, Video, app, db
 from ..forms import VideoUploadForm, VideoForm
 
 dashboard = Blueprint('dashboard', __name__)
@@ -17,7 +17,10 @@ def restrict():
 
 @dashboard.route('/')
 def home():
-    return render_template('dashboard.html')
+    user = User.query.get(current_user.get_id()) 
+    videos = Video.query.with_parent(user).limit(6).all()
+    
+    return render_template('dashboard.html', videos=videos)
 
 @dashboard.route('/upload-video', methods=['GET', 'POST'])
 def upload_video():

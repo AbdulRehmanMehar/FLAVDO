@@ -94,8 +94,8 @@ def remove_photo():
 
 @auth.route('/get-photo/<uname>')
 def get_photo(uname):
-    user = User.query.filter(User.username == uname).first()
-    if user != None:
+    user = User.query.filter(User.username==uname).first()
+    if user != None and user.photo != None:
         path = os.path.join(app.config['UPLOADS_FOLDER'] + '/images', user.photo)
         return send_file(path)
     return send_file(os.path.join(app.config['UPLOADS_FOLDER'] + '/images', 'default.jpg'))
